@@ -1,0 +1,35 @@
+# Binaries
+*.exe
+*.out
+*.log
+*.tmp
+*.swp
+*.bak
+
+# Go build outputs
+/serviceA
+/serviceB
+
+# Certificates & keys
+certs/
+*.crt
+*.key
+*.pem
+
+# Logs and audit data
+shared/
+*.jsonl
+
+# Docker / Compose junk
+config_default/
+.env
+*.pid
+
+# Python cache (for logjob)
+__pycache__/
+*.pyc
+
+# IDE / editor files
+.vscode/
+.idea/
+.DS_Store

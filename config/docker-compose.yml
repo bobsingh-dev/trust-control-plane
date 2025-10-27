@@ -1,0 +1,85 @@
+services:
+  # -----------------------------
+  # 1️⃣  Open Policy Agent (OPA)
+  # -----------------------------
+  opa:
+    image: openpolicyagent/opa:latest
+    command: ["run", "--server", "--addr=0.0.0.0:8181", "/policy/policy.rego"]
+    ports:
+      - "8181:8181"
+    volumes:
+      - ../opa:/policy:ro
+    # (no healthcheck to avoid Compose stall)
+
+  # -----------------------------
+  # 2️⃣  Service A (Protected API)
+  # -----------------------------
+  serviceA:
+    build:
+      context: ../
+      dockerfile: Dockerfile.serviceA
+    image: trustplane-servicea
+    # 👇 Wait a few seconds for OPA to be fully ready
+    command: ["/bin/sh", "-c", "sleep 8 && /app/serviceA"]
+    environment:
+      - OPA_URL=http://opa:8181/v1/data/trust/allow
+      - AUDIT_PATH=/shared/audit.jsonl
+      - SERVER_CERT=/certs/serviceA.crt
+      - SERVER_KEY=/certs/serviceA.key
+      - CA_CERT=/certs/ca.crt
+      - IDENTITY_EXPECT=spiffe://trust.local/serviceB
+    volumes:
+      - ../certs:/certs:ro
+      - ../shared:/shared
+    depends_on:
+      - opa
+    ports:
+      - "8443:8443"
+
+  # -----------------------------
+  # 3️⃣  Service B (Client)
+  # -----------------------------
+  serviceB:
+    build:
+      context: ../
+      dockerfile: Dockerfile.serviceB
+    image: trustplane-serviceb
+    environment:
+      - TARGET_URL=https://serviceA:8443/protected
+      - CLIENT_CERT=/certs/serviceB.crt
+      - CLIENT_KEY=/certs/serviceB.key
+      - CA_CERT=/certs/ca.crt
+      - CALL_INTERVAL=5
+    volumes:
+      - ../certs:/certs:ro
+    depends_on:
+      - serviceA
+
+  # -----------------------------
+  # 4️⃣  Log Job (Trust Score)
+  # -----------------------------
+  logjob:
+    build:
+      context: ../
+      dockerfile: Dockerfile.logjob
+    image: trustplane-logjob
+    volumes:
+      - ../shared:/shared
+    depends_on:
+      - serviceA
+
+  # -----------------------------
+  # 5️⃣  Certificate Generator (One-shot)
+  # -----------------------------
+  certgen:
+    image: alpine:3.20
+    working_dir: /work
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["apk add --no-cache openssl && /work/scripts/gen_certs.sh"]
+    volumes:
+      - ../scripts:/work/scripts
+      - ../certs:/work/certs
+    profiles: ["tools"]
+
+networks:
+  default: {}

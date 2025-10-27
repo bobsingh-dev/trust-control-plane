@@ -1,0 +1,13 @@
+FROM golang:1.22 AS builder
+WORKDIR /app
+COPY go.mod go.sum ./
+RUN go mod download
+COPY cmd/serviceA ./cmd/serviceA
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /serviceA ./cmd/serviceA
+
+FROM gcr.io/distroless/base-debian12
+WORKDIR /app
+COPY --from=builder /serviceA /app/serviceA
+EXPOSE 8443
+USER 65532:65532
+ENTRYPOINT ["/app/serviceA"]

@@ -1,0 +1,4 @@
+FROM python:3.11-slim
+WORKDIR /app
+COPY scripts/log_parser.py /app/log_parser.py
+CMD ["python", "/app/log_parser.py", "--input", "/shared/audit.jsonl"]
