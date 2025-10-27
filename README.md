@@ -47,12 +47,14 @@ serviceA-1   | ✅ access granted to spiffe://trust.local/serviceB
 serviceB-1   | status=200 body={"status":"ok","message":"access granted"}
 logjob-1     | [trust-score] allow=8 deny=0 score=1.0000
 
-Concepts Demonstrated
-Mutual TLS authentication between microservices
-SPIFFE-style identity URIs embedded in X.509 certificates
-OPA policy enforcement for authorization decisions
-Attestation chaining through verified workload identities
-Continuous assurance via audit logging and trust scoring
+
+🔎 Concepts Demonstrated
+
+🧩 Mutual TLS authentication between microservices
+🔐 SPIFFE-style identity URIs embedded in X.509 certificates
+⚙️ OPA policy enforcement for authorization decisions
+🧠 Attestation chaining through verified workload identities
+📈 Continuous assurance via audit logging and trust scoring
 
 
 control-plane/
